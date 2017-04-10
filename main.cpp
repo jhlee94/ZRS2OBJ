@@ -171,7 +171,7 @@ int main() {
 	}
 
 	// Remove duplicates in normal list
-	for (Mesh<string> m : meshes) {
+	for (Mesh<string> &m : meshes) {
 		vector<Vector3<string>> newNormals;
 		newNormals = m.normals;
 		auto end = std::unique(newNormals.begin(), newNormals.end(), compare<string>);
@@ -179,9 +179,9 @@ int main() {
 		m.normals_ndp = newNormals;
 	}
 
-
 	// Write to obj format
 	int lastIndex = 0;
+	int lastNormIndex = 0;
 	ofstream objFile("./data/new_church_a.obj");
 	if (objFile.is_open())
 	{
@@ -199,11 +199,11 @@ int main() {
 			objFile << "# " << m.vertices.size() << " vertices\n\n";
 
 			// Normals
-			for (Vector3<string> n : m.normals) {
+			for (Vector3<string> n : m.normals_ndp) {
 				objFile << "vn " << n.xyz[0] << ' ' << n.xyz[1] << ' ' << n.xyz[2] << '\n';
 			}
 
-			objFile << "# " << m.normals.size() << " vertex normals\n\n";
+			objFile << "# " << m.normals_ndp.size() << " vertex normals\n\n";
 
 			// TexCoords
 			for (Vector2<string> t : m.texCoords) {
@@ -213,13 +213,32 @@ int main() {
 			objFile << "# " << m.texCoords.size() << " texture coords\n\n";
 
 			for (Face f : m.faces) {
-				objFile << "f " << f.indices[0] + lastIndex << '/' << f.indices[0] + lastIndex << '/' << f.indices[0] + lastIndex
-					<< ' ' << f.indices[1] + lastIndex << '/' << f.indices[1] + lastIndex << '/' << f.indices[1] + lastIndex
-					<< ' ' << f.indices[2] + lastIndex << '/' << f.indices[2] + lastIndex << '/' << f.indices[2] + lastIndex
+				int newNormIndices[3];
+
+				// Find new index from non-duplicated normals list
+				for (size_t i = 0; i < m.normals_ndp.size(); i++) {
+					if (compare(m.normals[f.indices[0] - 1], m.normals_ndp[i])) {
+						newNormIndices[0] = i + 1;
+					}
+
+					if (compare(m.normals[f.indices[1] - 1], m.normals_ndp[i])) {
+						newNormIndices[1] = i + 1;
+					}
+
+					if (compare(m.normals[f.indices[2] - 1], m.normals_ndp[i])) {
+						newNormIndices[2] = i + 1;
+					}
+				}
+
+				objFile << "f " << f.indices[0] + lastIndex << '/' << f.indices[0] + lastIndex << '/' << newNormIndices[0] + lastNormIndex
+					<< ' ' << f.indices[1] + lastIndex << '/' << f.indices[1] + lastIndex << '/' << newNormIndices[1] + lastNormIndex
+					<< ' ' << f.indices[2] + lastIndex << '/' << f.indices[2] + lastIndex << '/' << newNormIndices[2] + lastNormIndex
 					<< '\n';
 			}
+
 			objFile << "# " << m.faces.size() << " faces\n\n";
-			lastIndex = m.vertices.size();
+			lastIndex += m.vertices.size();
+			lastNormIndex += m.normals_ndp.size();
 		}
 		objFile.close();
 	}
