@@ -97,6 +97,7 @@ void splitLine<int>(const string& str, string delim, vector<int> &out) {
 	}
 }
 
+// Compare function for Vector3 struct
 template <typename T>
 bool compare(Vector3<T> a, Vector3<T> b) {
 	return (a.xyz[0] == b.xyz[0]) &&
@@ -119,6 +120,7 @@ int main() {
 	if (in.is_open())
 	{
 		while (getline(in, line)) {
+			// search for mesh data
 			if (line.find("mesh") != std::string::npos) {
 				Mesh<string> m;
 				while (getline(in, line)) {
@@ -148,7 +150,6 @@ int main() {
 							}
 						}
 
-						// 168.38256
 						// check if line contains face (tri) data
 						if (line.find("tri") != std::string::npos) {
 							vector<int> data;
@@ -165,6 +166,7 @@ int main() {
 				meshes.push_back(m);
 			}
 
+			// Exit when scene structure data is reached.
 			if (line.find("object") != std::string::npos) break;
 		}
 		in.close();
@@ -187,6 +189,7 @@ int main() {
 	{
 		for (Mesh<string> m : meshes) {
 			
+			// Output name of mesh in a comment
 			objFile << "#\n"
 				<< "# Object " << m.name << '\n'
 				<< "#\n";
@@ -195,23 +198,21 @@ int main() {
 			for (Vector3<string> v : m.vertices) {
 				objFile << "v " << v.xyz[0] << ' ' << v.xyz[1] << ' ' << v.xyz[2] << '\n';
 			}
-
 			objFile << "# " << m.vertices.size() << " vertices\n\n";
 
 			// Normals
 			for (Vector3<string> n : m.normals_ndp) {
 				objFile << "vn " << n.xyz[0] << ' ' << n.xyz[1] << ' ' << n.xyz[2] << '\n';
 			}
-
 			objFile << "# " << m.normals_ndp.size() << " vertex normals\n\n";
 
 			// TexCoords
 			for (Vector2<string> t : m.texCoords) {
 				objFile << "vt " << t.uv[0] << ' ' << t.uv[1] << '\n';
 			}
-
 			objFile << "# " << m.texCoords.size() << " texture coords\n\n";
 
+			// Face indices
 			for (Face f : m.faces) {
 				int newNormIndices[3];
 
@@ -235,8 +236,8 @@ int main() {
 					<< ' ' << f.indices[2] + lastIndex << '/' << f.indices[2] + lastIndex << '/' << newNormIndices[2] + lastNormIndex
 					<< '\n';
 			}
-
 			objFile << "# " << m.faces.size() << " faces\n\n";
+
 			lastIndex += m.vertices.size();
 			lastNormIndex += m.normals_ndp.size();
 		}
