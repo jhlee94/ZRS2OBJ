@@ -361,6 +361,7 @@ int main() {
 	ofstream objFile(DATA_LOCATION + filename + ".obj");
 	if (objFile.is_open())
 	{
+		// if mtllib is created then
 		if (mtlLib)
 			objFile << "mtllib " << filename << ".mtl" << "\n\n";
 
